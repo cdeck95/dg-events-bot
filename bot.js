@@ -777,7 +777,7 @@ cron.schedule("*/5 * * * *", async () => {
 });
 
 // Schedule the task to run at 9am EST every day
-cron.schedule("0 9 * * *", async () => {
+cron.schedule("30 8 * * *", async () => {
   try {
     const guildIDCron = "1086345260994658425"; // disc guild server
     const guild = await client.guilds.fetch(guildIDCron);
