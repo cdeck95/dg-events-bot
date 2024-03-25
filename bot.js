@@ -403,6 +403,12 @@ client.on("interactionCreate", async (interaction) => {
           return;
         }
 
+        // Check if the title option is provided by the user
+        let title;
+        if (interaction.options.getString("title")) {
+          title = interaction.options.getString("title");
+        }
+
         const organizerId = interaction.user.id; // Use the ID of the user who issued the command
 
         const eventId = Object.keys(events).length + 1;
@@ -411,8 +417,11 @@ client.on("interactionCreate", async (interaction) => {
           location,
           eventDateTime,
           organizerId,
-          guildId
+          guildId,
+          "custom",
+          title
         );
+
         console.log(`Event added: ${eventId}`, events[eventId]); // Verify event addition
         console.log(events);
 

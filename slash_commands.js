@@ -29,6 +29,13 @@ const commands = [
         .setDescription("The time of the event (e.g., 7:00 PM)")
         .setRequired(true)
         .setAutocomplete(true)
+    )
+    .addStringOption(
+      (option) =>
+        option
+          .setName("title")
+          .setDescription("The title of the event (optional)")
+          .setRequired(false) // Make the title option optional
     ),
   new SlashCommandBuilder()
     .setName("delete_event")
