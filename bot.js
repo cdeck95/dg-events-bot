@@ -848,7 +848,8 @@ cron.schedule("0 21 * * *", async () => {
       }
     } else {
       // If no events are happening tomorrow, send a message to the channel
-      await channelToSendCronJobs.send("No events are happening tomorrow.");
+      // await channelToSendCronJobs.send("No events are happening tomorrow.");
+      console.log("No events are happening tomorrow.");
     }
   } catch (error) {
     console.error("Error executing cron job for tomorrow's events:", error);
