@@ -109,6 +109,8 @@ class Event {
 let events = {};
 let allEvents = {};
 
+const CHANNEL_TO_REPLY = process.env.CHANNEL_TO_REPLY;
+
 async function loadEventsFromAPI(guildID) {
   try {
     //console.log("Loading events from Discord API");
@@ -248,7 +250,9 @@ async function createEventEmbed(event, guild, eventId) {
     guild
   );
 
-  let embedDescription = `**When:** ${event.dateTime.toLocaleString("en-US", {
+  let embedDescription = `**Where:** ${
+    event.location
+  }\n**When:** ${event.dateTime.toLocaleString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -338,7 +342,7 @@ client.once("ready", async () => {
 
 client.on("interactionCreate", async (interaction) => {
   try {
-    //console.log("Interaction received:", interaction);
+    console.log("Interaction received:", interaction);
     if (
       interaction.channelId !== "1220735798312173588" &&
       interaction.channelId !== "1146900637209079941"
@@ -409,7 +413,8 @@ client.on("interactionCreate", async (interaction) => {
           title = interaction.options.getString("title");
         }
 
-        const organizerId = interaction.user.id; // Use the ID of the user who issued the command
+        const organizerId =
+          interaction.options.getUser("organizer").id || interaction.user.id;
 
         const eventId = Object.keys(events).length + 1;
         events[eventId] = new Event(
@@ -552,9 +557,10 @@ client.on("interactionCreate", async (interaction) => {
           saveEvents();
 
           // Send a confirmation message
-          await interaction.editReply(
-            `Event #${eventId} has been successfully deleted.`
-          );
+          await interaction.editReply({
+            content: `Event #${eventId} has been successfully deleted.`,
+            ephemeral: true,
+          });
         } else {
           // If the event ID is invalid or the event doesn't exist, send an error message
           await interaction.editReply({

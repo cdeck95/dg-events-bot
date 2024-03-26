@@ -48,25 +48,32 @@
       "786240821456273469"
     ]
   },
+  "4": {
+    "eventId": 4,
+    "location": "Stafford Woods",
+    "dateTime": "2024-03-26T21:00:00.000Z",
+    "organizerId": "1006947601100312746",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "title": "New Brooklyn Dubs (@ Stafford)",
+    "going": [
+      "1006947601100312746"
+    ],
+    "maybe": [
+      "340176439158767617",
+      "285853646271545344"
+    ]
+  },
   "5": {
     "eventId": 5,
     "location": "Tranqulity Trails",
-    "dateTime": "2024-03-23T01:00:00.000Z",
-    "organizerId": "285853646271545344",
-    "guildId": "1078672740862672936",
+    "dateTime": "2024-03-26T20:30:00.000Z",
+    "organizerId": "760292931008593950",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "title": "Putter Only Round",
     "going": [
-      "285853646271545344"
-    ],
-    "maybe": []
-  },
-  "6": {
-    "eventId": 6,
-    "location": "Alcyon Woods",
-    "dateTime": "2024-03-23T18:00:00.000Z",
-    "organizerId": "285853646271545344",
-    "guildId": "1078672740862672936",
-    "going": [
-      "285853646271545344"
+      "760292931008593950"
     ],
     "maybe": []
   }

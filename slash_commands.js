@@ -12,7 +12,9 @@ const commands = [
     .addStringOption((option) =>
       option
         .setName("location")
-        .setDescription("The location of the event")
+        .setDescription(
+          "The location of the event (e.g., Tranquility Trails, 1234 Main St, etc.)"
+        )
         .setRequired(true)
         .setAutocomplete(true)
     )
@@ -30,12 +32,17 @@ const commands = [
         .setRequired(true)
         .setAutocomplete(true)
     )
-    .addStringOption(
-      (option) =>
-        option
-          .setName("title")
-          .setDescription("The title of the event (optional)")
-          .setRequired(false) // Make the title option optional
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setDescription("The title of the event (optional)")
+        .setRequired(false)
+    )
+    .addUserOption((option) =>
+      option
+        .setName("organizer")
+        .setDescription("Whoever is organizing the event (optional)")
+        .setRequired(false)
     ),
   new SlashCommandBuilder()
     .setName("delete_event")
