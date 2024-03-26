@@ -334,10 +334,7 @@ function parseTimeTo24Hour(timeInput) {
 client.once("ready", async () => {
   console.log("Ready!");
   console.log(`Logged in as ${client.user.tag}`);
-  // Call the function to load events
-  // loadEvents();
   allEvents = await getAllEvents(guildID);
-  // console.log("All events in the server", allEvents);
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -414,7 +411,7 @@ client.on("interactionCreate", async (interaction) => {
         }
 
         const organizerId =
-          interaction.options.getUser("organizer").id || interaction.user.id;
+          interaction.options.getUser("organizer")?.id || interaction.user.id;
 
         const eventId = Object.keys(events).length + 1;
         events[eventId] = new Event(
