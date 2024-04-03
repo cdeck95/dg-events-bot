@@ -38,6 +38,12 @@ const commands = [
         .setDescription("The title of the event (optional)")
         .setRequired(false)
     )
+    .addStringOption((option) =>
+      option
+        .setName("description")
+        .setDescription("Details about the event (optional)")
+        .setRequired(false)
+    )
     .addUserOption((option) =>
       option
         .setName("organizer")

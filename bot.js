@@ -46,6 +46,7 @@ class Event {
     organizerId,
     guildId,
     type,
+    status,
     title,
     description,
     going = [],
@@ -57,6 +58,7 @@ class Event {
     this.organizerId = organizerId; // Now storing ID
     this.guildId = guildId;
     this.type = type;
+    this.status = status;
     this.title = title;
     this.description = description;
     this.going = going;
@@ -149,6 +151,7 @@ function loadEvents() {
           e.organizerId,
           e.guildId,
           e.type,
+          e.status,
           e.title,
           e.description,
           e.going,
@@ -182,6 +185,7 @@ function normalizeDiscordEvent(discordEvent, guildId) {
     discordEvent.creatorId || guildId, // organizerId, fallback to guildId
     guildId, // guildId, as passed to the function
     "discord",
+    "scheduled", // status, fallback to "scheduled"
     discordEvent.name || "", // title, fallback to ""
     discordEvent.description || "" // description, fallback to ""
     // Excluding 'going' and 'maybe' as they are not applicable
@@ -200,11 +204,13 @@ async function getAllEvents(guildID) {
     );
     //console.log("Normalized Discord events:", discordEvents);
 
-    // Assuming customEventsRaw is already in the desired format
-    const customEvents = Object.values(customEventsRaw);
+    // Filter out inactive custom events
+    const activeCustomEvents = Object.values(customEventsRaw).filter(
+      (event) => event.status !== "inactive"
+    );
 
-    // Combine the events
-    const allEvents = discordEvents.concat(customEvents);
+    // Combine the active custom events with the normalized Discord events
+    const allEvents = discordEvents.concat(activeCustomEvents);
     //console.log("All events combined:", allEvents);
 
     // Now `allEvents` contains both your custom events and normalized Discord events
@@ -260,7 +266,7 @@ async function createEventEmbed(event, guild, eventId) {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  })}`;
+  })}\n**About:** ${event.description}`;
 
   let embed = new EmbedBuilder()
     .setColor(event.type === "discord" ? "#008000" : "#0099ff")
@@ -270,7 +276,7 @@ async function createEventEmbed(event, guild, eventId) {
 
   if (event.type !== "discord") {
     embed.setDescription(
-      `${embedDescription}\n**Organizer**: ${organizerDisplayName}`
+      `${embedDescription}\n**Organizer**: ${organizerDisplayName}\n`
     );
 
     const goingList = await formatUserListForEmbed(event.going);
@@ -337,22 +343,18 @@ client.once("ready", async () => {
   allEvents = await getAllEvents(guildID);
 });
 
+const MEETUP_BOT_CHANNEL_ID = "1220735798312173588";
+
 client.on("interactionCreate", async (interaction) => {
   try {
     console.log("Interaction received:", interaction);
-    if (
-      interaction.channelId !== "1220735798312173588" &&
-      interaction.channelId !== "1146900637209079941"
-    ) {
-      interaction.reply("Please use the bot in the <#meetup-bot> channel.");
-      return;
-    }
+
     if (interaction.isCommand()) {
-      await interaction.deferReply(); // Defer the reply to indicate that the bot is processing the command
       const { commandName, guildId } = interaction;
       console.log("Guild ID:", guildId);
 
       if (commandName === "create_event") {
+        await interaction.deferReply({ ephemeral: true });
         const location = interaction.options.getString("location");
 
         console.log(interaction.options);
@@ -410,6 +412,11 @@ client.on("interactionCreate", async (interaction) => {
           title = interaction.options.getString("title");
         }
 
+        let description;
+        if (interaction.options.getString("description")) {
+          description = interaction.options.getString("description");
+        }
+
         const organizerId =
           interaction.options.getUser("organizer")?.id || interaction.user.id;
 
@@ -421,7 +428,9 @@ client.on("interactionCreate", async (interaction) => {
           organizerId,
           guildId,
           "custom",
-          title
+          "scheduled",
+          title,
+          description
         );
 
         console.log(`Event added: ${eventId}`, events[eventId]); // Verify event addition
@@ -437,18 +446,29 @@ client.on("interactionCreate", async (interaction) => {
 
         saveEvents(); // Save events after adding a new one
 
+        // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+        const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+        if (replyChannel) {
+          // Ensure the channel was found
+          replyChannel.send({
+            content: `<@${interaction.user.id}>, your event has been created successfully!`,
+            embeds: [embed], // Assuming 'embed' is already created based on your event details
+            components: [components], // Assuming 'components' are already prepared for the event
+          });
+        } else {
+          console.error("Failed to find the reply channel.");
+        }
+
+        // Inform the user via the initial interaction that the event was posted elsewhere
         await interaction.editReply({
-          embeds: [embed],
-          components: [components],
+          content: `Your event has been created and posted in the <#${CHANNEL_TO_REPLY}> channel.`,
+          ephemeral: true,
         });
       }
 
       if (commandName === "events_today") {
-        // Start by replying with an initial message indicating that more info is coming
-        await interaction.editReply({
-          content: "Fetching today's events...",
-          ephemeral: true,
-        });
+        await interaction.deferReply({ ephemeral: true });
+
         const today = new Date();
         getAllEvents(guildId).then(async (allEvents) => {
           const eventsToday = allEvents.filter(
@@ -465,20 +485,44 @@ client.on("interactionCreate", async (interaction) => {
                 await createEventEmbed(event, interaction.guild, event.eventId);
               console.log("Embed created: ", embed);
               embeds.push(embed);
-              if (eventComponents === null) {
-                continue;
-              } else {
-                components.push(eventComponents);
+              if (
+                eventComponents &&
+                Array.isArray(eventComponents) &&
+                eventComponents.length > 0
+              ) {
+                // Assuming each eventComponents array contains only one action row for simplicity
+                // Verify each action row has a 'components' array with at least one component
+                const validActionRows = eventComponents.filter(
+                  (actionRow) =>
+                    actionRow.components &&
+                    Array.isArray(actionRow.components) &&
+                    actionRow.components.length > 0
+                );
+
+                components.push(...validActionRows);
               }
             }
             const moreThan10 = eventsToday.length > 10;
-            // Send the initial reply or a follow-up for the first batch of embeds
+            // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+            const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+
+            if (replyChannel) {
+              // Ensure the channel was found
+              replyChannel.send({
+                content: moreThan10
+                  ? `<@${interaction.user.id}>, Here are today's events (limit 10):`
+                  : `<@${interaction.user.id}>, Here are today's events:`,
+                embeds: embeds.slice(0, 10),
+                components: components.slice(0, 10),
+              });
+            } else {
+              console.error("Failed to find the reply channel.");
+            }
+
+            // Inform the user via the initial interaction that the event was posted elsewhere
             await interaction.editReply({
-              content: moreThan10
-                ? "Here are today's events (limit 10):"
-                : "Here are today's events:", // Clear the initial fetching message
-              embeds: embeds.slice(0, 10),
-              components: components.slice(0, 10), // Adjust as per your component handling
+              content: `Today's events have been posted in the <#${CHANNEL_TO_REPLY}> channel.`,
+              ephemeral: true,
             });
           } else {
             await interaction.editReply("No events are happening today.");
@@ -488,11 +532,7 @@ client.on("interactionCreate", async (interaction) => {
 
       // Handling the future_events command
       if (commandName === "future_events") {
-        // Start by replying with an initial message indicating that more info is coming
-        await interaction.editReply({
-          content: "Fetching future events...",
-          ephemeral: true,
-        });
+        await interaction.deferReply({ ephemeral: true });
 
         const today = new Date(); // Today's date
         const tomorrow = new Date(today); // Clone today's date to avoid mutating the original
@@ -522,38 +562,88 @@ client.on("interactionCreate", async (interaction) => {
               const { embed, components: eventComponents } =
                 await createEventEmbed(event, interaction.guild, event.eventId);
               embeds.push(embed);
-              if (eventComponents === null) {
-                continue;
-              } else {
-                components.push(eventComponents);
+              if (
+                eventComponents &&
+                Array.isArray(eventComponents) &&
+                eventComponents.length > 0
+              ) {
+                // Assuming each eventComponents array contains only one action row for simplicity
+                // Verify each action row has a 'components' array with at least one component
+                const validActionRows = eventComponents.filter(
+                  (actionRow) =>
+                    actionRow.components &&
+                    Array.isArray(actionRow.components) &&
+                    actionRow.components.length > 0
+                );
+
+                components.push(...validActionRows);
               }
             }
-            // Send the initial reply or a follow-up for the first batch of embeds
+            const moreThan10 = futureEvents.length > 10;
+            // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+            const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+
+            console.log("Components:", components);
+            // Filtering out any action rows that are empty or have more than 5 components
+            const validComponents = components.filter(
+              (actionRow) =>
+                actionRow.components.length > 0 &&
+                actionRow.components.length <= 5
+            );
+
+            if (replyChannel) {
+              // Ensure the channel was found
+              replyChannel.send({
+                content: moreThan10
+                  ? `<@${interaction.user.id}>, Here are the future events (limit 10):`
+                  : `<@${interaction.user.id}>, Here are the future events:`,
+                embeds: embeds.slice(0, 10),
+                components: validComponents.slice(0, 10),
+              });
+            } else {
+              console.error("Failed to find the reply channel.");
+            }
+
+            // Inform the user via the initial interaction that the event was posted elsewhere
             await interaction.editReply({
-              content: "Here are the future events (limit 10):", // Clear the initial fetching message
-              embeds: embeds.slice(0, 10),
-              components: components.slice(0, 10), // Adjust as per your component handling
+              content: `Future events have been posted in the <#${CHANNEL_TO_REPLY}> channel.`,
+              ephemeral: true,
             });
           } else {
-            await interaction.reply("No events are happening in the future.");
+            await interaction.editReply(
+              "No events are happening in the future."
+            );
           }
         });
       }
 
       // Handling the delete_event command or button interaction
       if (commandName === "delete_event") {
+        await interaction.deferReply({ ephemeral: true });
         // Retrieve the event ID from the interaction options
         const eventId = interaction.options.getString("event_id");
 
         // Check if the event ID is valid and the event exists
         if (events[eventId]) {
-          // Delete the event from the events object
-          delete events[eventId];
+          // Mark the event as inactive instead of deleting it
+          events[eventId].status = "inactive";
 
           // Save the updated events to the JSON file
           saveEvents();
 
-          // Send a confirmation message
+          // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+          const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+
+          if (replyChannel) {
+            // Ensure the channel was found
+            replyChannel.send({
+              content: `<@${interaction.user.id}>, Event #${eventId} has been successfully deleted.`,
+            });
+          } else {
+            console.error("Failed to find the reply channel.");
+          }
+
+          // Inform the user via the initial interaction that the event was posted elsewhere
           await interaction.editReply({
             content: `Event #${eventId} has been successfully deleted.`,
             ephemeral: true,
@@ -562,7 +652,7 @@ client.on("interactionCreate", async (interaction) => {
           // If the event ID is invalid or the event doesn't exist, send an error message
           await interaction.editReply({
             content: "Invalid event ID. Event not found.",
-            ephemeral: true,
+            ephemeral: false,
           });
         }
       }
@@ -811,6 +901,7 @@ cron.schedule("30 8 * * *", async () => {
 
       for (const event of eventsToday) {
         const { embed } = await createEventEmbed(event, guild, event.eventId);
+        console.log("Embed created:", embed);
         embeds.push(embed);
       }
 
@@ -851,6 +942,7 @@ cron.schedule("0 21 * * *", async () => {
       const embeds = [];
       for (const event of eventsTomorrow) {
         const { embed } = await createEventEmbed(event, guild, event.eventId);
+        console.log("Embed created:", embed);
         embeds.push(embed);
       }
 

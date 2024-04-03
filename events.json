@@ -23,12 +23,8 @@
     "dateTime": "2024-03-22T17:00:00.000Z",
     "organizerId": "199871453678534656",
     "guildId": "1086345260994658425",
-    "going": [
-      "199871453678534656"
-    ],
-    "maybe": [
-      "397841028624941058"
-    ]
+    "going": ["199871453678534656"],
+    "maybe": ["397841028624941058"]
   },
   "3": {
     "eventId": 3,
@@ -44,9 +40,7 @@
       "214214134861004800",
       "199871453678534656"
     ],
-    "maybe": [
-      "786240821456273469"
-    ]
+    "maybe": ["786240821456273469"]
   },
   "4": {
     "eventId": 4,
@@ -56,13 +50,8 @@
     "guildId": "1086345260994658425",
     "type": "custom",
     "title": "New Brooklyn Dubs (@ Stafford)",
-    "going": [
-      "1006947601100312746"
-    ],
-    "maybe": [
-      "340176439158767617",
-      "285853646271545344"
-    ]
+    "going": ["1006947601100312746"],
+    "maybe": ["340176439158767617"]
   },
   "5": {
     "eventId": 5,
@@ -72,9 +61,172 @@
     "guildId": "1086345260994658425",
     "type": "custom",
     "title": "Putter Only Round",
+    "going": ["760292931008593950", "1086826575087017984"],
+    "maybe": ["397841028624941058"]
+  },
+  "6": {
+    "eventId": 6,
+    "location": "Stafford Woods",
+    "dateTime": "2024-03-26T20:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "going": ["285853646271545344"],
+    "maybe": []
+  },
+  "7": {
+    "eventId": 7,
+    "location": "Stafford Woods",
+    "dateTime": "2024-03-27T20:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "title": "BYOP Doubles",
     "going": [
-      "760292931008593950"
+      "285853646271545344",
+      "1145354063710539839",
+      "1092771030524756068"
     ],
+    "maybe": []
+  },
+  "8": {
+    "eventId": 8,
+    "location": "Cosmic Disc Golf",
+    "dateTime": "2024-03-28T22:15:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "title": "Putting League",
+    "going": ["760292931008593950", "810364960101761054"],
+    "maybe": ["1145354063710539839", "713445194523082882"]
+  },
+  "9": {
+    "eventId": 9,
+    "location": "Stafford Woods",
+    "dateTime": "2024-03-29T18:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "going": ["285853646271545344"],
+    "maybe": []
+  },
+  "10": {
+    "eventId": 10,
+    "location": "New Brooklyn",
+    "dateTime": "2024-03-31T13:30:00.000Z",
+    "organizerId": "1006947601100312746",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "going": ["1006947601100312746"],
+    "maybe": []
+  },
+  "11": {
+    "eventId": 11,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-04T20:45:00.000Z",
+    "organizerId": "760292931008593950",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "inactive",
+    "title": "Tags (Signups @ 4:15)",
+    "going": ["708483709380329522"],
+    "maybe": ["285853646271545344", "397841028624941058"]
+  },
+  "12": {
+    "eventId": 12,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-02T18:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1078672740862672936",
+    "type": "custom",
+    "status": "inactive",
+    "going": [],
+    "maybe": []
+  },
+  "13": {
+    "eventId": 13,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-03T20:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1078672740862672936",
+    "type": "custom",
+    "status": "inactive",
+    "going": [],
+    "maybe": []
+  },
+  "14": {
+    "eventId": 14,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-02T18:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1078672740862672936",
+    "type": "custom",
+    "status": "inactive",
+    "title": "Tags",
+    "description": "Signups at 4:15, $10 to play. $15 for a tag.",
+    "going": [],
+    "maybe": []
+  },
+  "15": {
+    "eventId": 15,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-02T19:00:00.000Z",
+    "organizerId": "760292931008593950",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "inactive",
+    "title": "Test Tags Event",
+    "description": "$15 for a tag",
+    "going": [],
+    "maybe": []
+  },
+  "16": {
+    "eventId": 16,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-02T20:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "inactive",
+    "description": "test desc",
+    "going": [],
+    "maybe": []
+  },
+  "17": {
+    "eventId": 17,
+    "location": "Stafford Woods",
+    "dateTime": "2024-04-02T21:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1078672740862672936",
+    "type": "custom",
+    "status": "inactive",
+    "description": "dshjkdsa",
+    "going": [],
+    "maybe": []
+  },
+  "18": {
+    "eventId": 18,
+    "location": "Stafford Woods",
+    "dateTime": "2024-04-02T21:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "inactive",
+    "title": "Tags",
+    "description": "$10 to play",
+    "going": [],
+    "maybe": []
+  },
+  "19": {
+    "eventId": 19,
+    "location": "Alcyon Woods",
+    "dateTime": "2024-04-04T12:00:00.000Z",
+    "organizerId": "341588982187950081",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "description": "casual round",
+    "going": ["341588982187950081"],
     "maybe": []
   }
 }
