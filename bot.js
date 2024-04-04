@@ -617,6 +617,88 @@ client.on("interactionCreate", async (interaction) => {
         });
       }
 
+      if (commandName === "edit_description") {
+        await interaction.deferReply({ ephemeral: true });
+        const eventId = interaction.options.getString("event_id");
+        const newDescription = interaction.options.getString("description");
+
+        if (events[eventId]) {
+          events[eventId].description = newDescription;
+          saveEvents();
+          // Generate updated event embed
+          const updatedEvent = events[eventId];
+          const guild = await client.guilds.cache.get(updatedEvent.guildId);
+          const { embed } = await createEventEmbed(
+            updatedEvent,
+            guild,
+            eventId
+          );
+
+          // Send the updated event embed to the designated channel
+          const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+          if (replyChannel) {
+            replyChannel.send({
+              content: `📣 Event Update: "${updatedEvent.title}" Description Updated`,
+              embeds: [embed],
+            });
+            await interaction.editReply({
+              content: `Event description updated successfully. The updated event details have been posted in the <${CHANNEL_TO_REPLY}> channel.`,
+            });
+          } else {
+            await interaction.editReply({
+              content: `Event description updated successfully, but the updated details could not be posted in the <${CHANNEL_TO_REPLY}> channel.`,
+              ephemeral: true,
+            });
+          }
+        } else {
+          await interaction.editReply({
+            content: "Event not found.",
+            ephemeral: true,
+          });
+        }
+      }
+
+      if (commandName === "edit_title") {
+        await interaction.deferReply({ ephemeral: true });
+        const eventId = interaction.options.getString("event_id");
+        const newTitle = interaction.options.getString("title");
+
+        if (events[eventId]) {
+          events[eventId].title = newTitle;
+          saveEvents(); // Make sure to implement this function to save changes to disk or database
+          // Generate updated event embed
+          const updatedEvent = events[eventId];
+          const guild = client.guilds.cache.get(updatedEvent.guildId);
+          const { embed } = await createEventEmbed(
+            updatedEvent,
+            guild,
+            eventId
+          );
+
+          // Send the updated event embed to the designated channel
+          const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+          if (replyChannel) {
+            replyChannel.send({
+              content: `📣 Event Update: ${updatedEvent.title}`,
+              embeds: [embed],
+            });
+            await interaction.editReply({
+              content: `Event title updated successfully. The updated event details have been posted in the <${CHANNEL_TO_REPLY}> channel.`,
+            });
+          } else {
+            await interaction.editReply({
+              content: `Event title updated successfully, but the updated details could not be posted in the <${CHANNEL_TO_REPLY}> channel.`,
+              ephemeral: true,
+            });
+          }
+        } else {
+          await interaction.reply({
+            content: "Event not found.",
+            ephemeral: true,
+          });
+        }
+      }
+
       // Handling the delete_event command or button interaction
       if (commandName === "delete_event") {
         await interaction.deferReply({ ephemeral: true });

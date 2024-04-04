@@ -60,6 +60,51 @@ const commands = [
         .setRequired(true)
     ),
   new SlashCommandBuilder()
+    .setName("edit_time")
+    .setDescription("Edit the time for an existing event")
+    .addStringOption((option) =>
+      option
+        .setName("event_id")
+        .setDescription("The ID of the event to edit")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("time")
+        .setDescription("The new time of the event")
+        .setRequired(true)
+    ),
+  new SlashCommandBuilder()
+    .setName("edit_title")
+    .setDescription("Edit the title for an existing event")
+    .addStringOption((option) =>
+      option
+        .setName("event_id")
+        .setDescription("The ID of the event to edit")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("title")
+        .setDescription("The new title of the event")
+        .setRequired(true)
+    ),
+  new SlashCommandBuilder()
+    .setName("edit_description")
+    .setDescription("Edit the description for an existing event")
+    .addStringOption((option) =>
+      option
+        .setName("event_id")
+        .setDescription("The ID of the event to edit")
+        .setRequired(true)
+    )
+    .addStringOption((option) =>
+      option
+        .setName("description")
+        .setDescription("The new description of the event")
+        .setRequired(true)
+    ),
+  new SlashCommandBuilder()
     .setName("events_today")
     .setDescription("List all disc golf events happening today"),
   new SlashCommandBuilder()
