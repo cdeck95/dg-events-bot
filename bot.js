@@ -982,7 +982,11 @@ cron.schedule("30 8 * * *", async () => {
       const embeds = [];
 
       for (const event of eventsToday) {
-        const { embed } = await createEventEmbed(event, guild, event.eventId);
+        const { embed, components } = await createEventEmbed(
+          event,
+          guild,
+          event.eventId
+        );
         console.log("Embed created:", embed);
         embeds.push(embed);
       }
@@ -990,7 +994,10 @@ cron.schedule("30 8 * * *", async () => {
       // Send the embeds to the specified channel
 
       for (const embed of embeds) {
-        await channelToSendCronJobs.send({ embeds: [embed] });
+        await channelToSendCronJobs.send({
+          embeds: [embed],
+          components: [components],
+        });
       }
     } else {
       console.log("No events are happening today.");
@@ -1023,14 +1030,21 @@ cron.schedule("0 21 * * *", async () => {
 
       const embeds = [];
       for (const event of eventsTomorrow) {
-        const { embed } = await createEventEmbed(event, guild, event.eventId);
+        const { embed, components } = await createEventEmbed(
+          event,
+          guild,
+          event.eventId
+        );
         console.log("Embed created:", embed);
         embeds.push(embed);
       }
 
       // Send the embeds for tomorrow's events
       for (const embed of embeds) {
-        await channelToSendCronJobs.send({ embeds: [embed] });
+        await channelToSendCronJobs.send({
+          embeds: [embed],
+          components: [components],
+        });
       }
     } else {
       // If no events are happening tomorrow, send a message to the channel
