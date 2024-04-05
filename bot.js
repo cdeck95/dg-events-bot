@@ -941,10 +941,15 @@ async function checkAndSendEventReminders() {
   });
 
   for (const event of upcomingEvents) {
-    const { embed } = await createEventEmbed(event, guild, event.eventId); // Create embed for the event
+    const { embed, components } = await createEventEmbed(
+      event,
+      guild,
+      event.eventId
+    ); // Create embed for the event
     await channelToSendCronJobs.send({
       content: "🔔 Reminder: An event is starting soon!",
       embeds: [embed],
+      components: [components], // No components for reminders
     });
     remindedEventIds.add(event.eventId); // Mark this event as reminded
 

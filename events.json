@@ -277,5 +277,20 @@
       "810364960101761054"
     ],
     "maybe": []
+  },
+  "21": {
+    "eventId": 21,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-05T20:30:00.000Z",
+    "organizerId": "658458361570000915",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "description": "quick round of shorts",
+    "going": [
+      "347939895760650251",
+      "397841028624941058"
+    ],
+    "maybe": []
   }
 }
