@@ -26,8 +26,8 @@ const { ca } = require("date-fns/locale");
 
 // Define the path to your JSON file
 const eventsFilePath = path.join(__dirname, "events.json");
-const guildID = "1078672740862672936"; // my server
-//const guildID = "1086345260994658425"; // disc guild server
+//const guildID = "1078672740862672936"; // my server
+const guildID = "1086345260994658425"; // disc guild server
 
 const client = new Client({
   intents: [
@@ -50,7 +50,8 @@ class Event {
     title,
     description,
     going = [],
-    maybe = []
+    maybe = [],
+    interested
   ) {
     this.eventId = eventId;
     this.location = location;
@@ -63,6 +64,7 @@ class Event {
     this.description = description;
     this.going = going;
     this.maybe = maybe;
+    this.interested = interested;
   }
 
   // Update a user's status to "going"
@@ -115,15 +117,27 @@ const CHANNEL_TO_REPLY = process.env.CHANNEL_TO_REPLY;
 
 async function loadEventsFromAPI(guildID) {
   try {
-    //console.log("Loading events from Discord API");
+    // Fetch the guild using the provided guild ID
     const guild = await client.guilds.fetch(guildID);
-    //console.log("Guild fetched:", guild);
+
+    // Fetch all scheduled events for the guild
     const events = await guild.scheduledEvents.fetch();
 
-    // Process the events here
+    // Convert the fetched events collection to an array and filter to include only future events
+    const futureEvents = [...events.values()].filter(
+      (event) => event.scheduledStartTimestamp > Date.now()
+    );
 
-    //console.log("Events loaded successfully from Discord API:", events);
-    return events;
+    // Sort the future events by their scheduled start time in ascending order
+    const sortedFutureEvents = futureEvents.sort(
+      (a, b) => a.scheduledStartTimestamp - b.scheduledStartTimestamp
+    );
+
+    // Limit the array to the first 10 events
+    const next10Events = sortedFutureEvents.slice(0, 10);
+
+    // Return the next 10 future events
+    return next10Events;
   } catch (error) {
     console.error("Error loading events from Discord API:", error);
     throw error;
@@ -155,7 +169,8 @@ function loadEvents() {
           e.title,
           e.description,
           e.going,
-          e.maybe
+          e.maybe,
+          e.interested
         );
       });
       //console.log("Events loaded successfully.", events);
@@ -177,18 +192,41 @@ function saveEvents() {
   }
 }
 
-function normalizeDiscordEvent(discordEvent, guildId) {
+async function normalizeDiscordEvent(discordEvent, guildId) {
+  let interested = [];
+
+  try {
+    // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
+    const subscribers = await discordEvent.fetchSubscribers();
+    console.log(
+      "Subscribers fetched:",
+      subscribers.map((subscriber) => subscriber.user.id)
+    );
+    // Flatten the array of IDs into `interested` directly
+    interested = subscribers.map((subscriber) => subscriber.user.id);
+    console.log("Interested list:", interested);
+  } catch (error) {
+    console.error(
+      "Error fetching subscribers for event:",
+      discordEvent.id,
+      error
+    );
+  }
+
+  // Simplify object creation and return directly
   return new Event(
-    discordEvent.id, // eventId
-    discordEvent.entityMetadata["location"] || "Online/Discord", // location, adjusted as needed
-    discordEvent.scheduledStartTimestamp, // dateTime, assuming this is a timestamp
-    discordEvent.creatorId || guildId, // organizerId, fallback to guildId
-    guildId, // guildId, as passed to the function
+    discordEvent.id,
+    discordEvent.entityMetadata["location"] || "Online/Discord",
+    discordEvent.scheduledStartTimestamp,
+    discordEvent.creatorId || guildId,
+    guildId,
     "discord",
-    "scheduled", // status, fallback to "scheduled"
-    discordEvent.name || "", // title, fallback to ""
-    discordEvent.description || "" // description, fallback to ""
-    // Excluding 'going' and 'maybe' as they are not applicable
+    "scheduled",
+    discordEvent.name || "",
+    discordEvent.description || "",
+    [], //going
+    [], //maybe
+    interested
   );
 }
 
@@ -196,13 +234,16 @@ async function getAllEvents(guildID) {
   try {
     const discordEventsRaw = await loadEventsFromAPI(guildID);
     //console.log("Discord events loaded:", discordEventsRaw);
-    const customEventsRaw = await loadEvents(); // Assumes this returns the custom events
+    const customEventsRaw = loadEvents(); // Assumes this returns the custom events
 
     // Normalize Discord events
-    const discordEvents = [...discordEventsRaw.values()].map((event) =>
-      normalizeDiscordEvent(event, guildID)
+    const discordEvents = await Promise.all(
+      [...discordEventsRaw.values()]
+        // .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)) // sort by time/date
+        // .slice(0, 10)
+        .map((event) => normalizeDiscordEvent(event, guildID))
     );
-    //console.log("Normalized Discord events:", discordEvents);
+    console.log("Normalized Discord events:", discordEvents);
 
     // Filter out inactive custom events
     const activeCustomEvents = Object.values(customEventsRaw).filter(
@@ -286,6 +327,16 @@ async function createEventEmbed(event, guild, eventId) {
       { name: `Going (${event.going.length})`, value: goingList, inline: true },
       { name: `Maybe (${event.maybe.length})`, value: maybeList, inline: true }
     );
+  } else {
+    //console.log("Interested list:", event.interested);
+    const interestedList = await formatUserListForEmbed(event.interested);
+    //console.log("FORMATTED Interested list:", interestedList);
+
+    embed.addFields({
+      name: `Interested (${event.going.length})`,
+      value: interestedList,
+      inline: true,
+    });
   }
 
   // Initialize an empty array for components
