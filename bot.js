@@ -204,7 +204,7 @@ async function normalizeDiscordEvent(discordEvent, guildId) {
     );
     // Flatten the array of IDs into `interested` directly
     interested = subscribers.map((subscriber) => subscriber.user.id);
-    console.log("Interested list:", interested);
+    //console.log("Interested list:", interested);
   } catch (error) {
     console.error(
       "Error fetching subscribers for event:",
@@ -333,7 +333,7 @@ async function createEventEmbed(event, guild, eventId) {
     //console.log("FORMATTED Interested list:", interestedList);
 
     embed.addFields({
-      name: `Interested (${event.going.length})`,
+      name: `Interested (${event.interestedList.length})`,
       value: interestedList,
       inline: true,
     });
