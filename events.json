@@ -292,5 +292,20 @@
       "397841028624941058"
     ],
     "maybe": []
+  },
+  "22": {
+    "eventId": 22,
+    "location": "Iron Hill",
+    "dateTime": "2024-04-06T14:00:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "description": "longs/pro layout. Could be a long one!",
+    "going": [
+      "285853646271545344",
+      "1145354063710539839"
+    ],
+    "maybe": []
   }
 }

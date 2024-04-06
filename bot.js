@@ -198,10 +198,10 @@ async function normalizeDiscordEvent(discordEvent, guildId) {
   try {
     // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
     const subscribers = await discordEvent.fetchSubscribers();
-    console.log(
-      "Subscribers fetched:",
-      subscribers.map((subscriber) => subscriber.user.id)
-    );
+    // console.log(
+    //   "Subscribers fetched:",
+    //   subscribers.map((subscriber) => subscriber.user.id)
+    // );
     // Flatten the array of IDs into `interested` directly
     interested = subscribers.map((subscriber) => subscriber.user.id);
     //console.log("Interested list:", interested);
@@ -243,7 +243,7 @@ async function getAllEvents(guildID) {
         // .slice(0, 10)
         .map((event) => normalizeDiscordEvent(event, guildID))
     );
-    console.log("Normalized Discord events:", discordEvents);
+    //console.log("Normalized Discord events:", discordEvents);
 
     // Filter out inactive custom events
     const activeCustomEvents = Object.values(customEventsRaw).filter(
@@ -1035,8 +1035,6 @@ cron.schedule("30 8 * * *", async () => {
     if (eventsToday.length > 0) {
       await channelToSendCronJobs.send("These are today's events:");
 
-      const embeds = [];
-
       for (const event of eventsToday) {
         const { embed, components } = await createEventEmbed(
           event,
@@ -1044,12 +1042,6 @@ cron.schedule("30 8 * * *", async () => {
           event.eventId
         );
         console.log("Embed created:", embed);
-        embeds.push(embed);
-      }
-
-      // Send the embeds to the specified channel
-
-      for (const embed of embeds) {
         await channelToSendCronJobs.send({
           embeds: [embed],
           components: [components],
@@ -1085,6 +1077,7 @@ cron.schedule("0 21 * * *", async () => {
       await channelToSendCronJobs.send("These are tomorrow's events:");
 
       const embeds = [];
+      const components = [];
       for (const event of eventsTomorrow) {
         const { embed, components } = await createEventEmbed(
           event,
@@ -1092,11 +1085,7 @@ cron.schedule("0 21 * * *", async () => {
           event.eventId
         );
         console.log("Embed created:", embed);
-        embeds.push(embed);
-      }
-
-      // Send the embeds for tomorrow's events
-      for (const embed of embeds) {
+        // embeds.push(embed);
         await channelToSendCronJobs.send({
           embeds: [embed],
           components: [components],
