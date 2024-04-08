@@ -195,23 +195,23 @@ function saveEvents() {
 async function normalizeDiscordEvent(discordEvent, guildId) {
   let interested = [];
 
-  try {
-    // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
-    const subscribers = await discordEvent.fetchSubscribers();
-    // console.log(
-    //   "Subscribers fetched:",
-    //   subscribers.map((subscriber) => subscriber.user.id)
-    // );
-    // Flatten the array of IDs into `interested` directly
-    interested = subscribers.map((subscriber) => subscriber.user.id);
-    //console.log("Interested list:", interested);
-  } catch (error) {
-    console.error(
-      "Error fetching subscribers for event:",
-      discordEvent.id,
-      error
-    );
-  }
+  // try {
+  //   // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
+  //   const subscribers = await discordEvent.fetchSubscribers();
+  //   // console.log(
+  //   //   "Subscribers fetched:",
+  //   //   subscribers.map((subscriber) => subscriber.user.id)
+  //   // );
+  //   // Flatten the array of IDs into `interested` directly
+  //   interested = subscribers.map((subscriber) => subscriber.user.id);
+  //   //console.log("Interested list:", interested);
+  // } catch (error) {
+  //   console.error(
+  //     "Error fetching subscribers for event:",
+  //     discordEvent.id,
+  //     error
+  //   );
+  // }
 
   // Simplify object creation and return directly
   return new Event(
@@ -328,15 +328,17 @@ async function createEventEmbed(event, guild, eventId) {
       { name: `Maybe (${event.maybe.length})`, value: maybeList, inline: true }
     );
   } else {
-    //console.log("Interested list:", event.interested);
-    const interestedList = await formatUserListForEmbed(event.interested);
-    //console.log("FORMATTED Interested list:", interestedList);
+    if (event.interested.length > 0) {
+      //console.log("Interested list:", event.interested);
+      const interestedList = await formatUserListForEmbed(event.interested);
+      //console.log("FORMATTED Interested list:", interestedList);
 
-    embed.addFields({
-      name: `Interested (${event.interestedList.length})`,
-      value: interestedList,
-      inline: true,
-    });
+      embed.addFields({
+        name: `Interested (${event.interestedList.length})`,
+        value: interestedList,
+        inline: true,
+      });
+    }
   }
 
   // Initialize an empty array for components
@@ -1021,38 +1023,64 @@ cron.schedule("30 8 * * *", async () => {
   try {
     const guildIDCron = "1086345260994658425"; // disc guild server
     const guild = await client.guilds.fetch(guildIDCron);
-    const channelToSendCronJobs = await client.channels.fetch(
-      "1220735798312173588"
-    ); // The ID of the channel where reminders should be sent
     const today = new Date();
-    const allEvents = await getAllEvents(guildIDCron);
-    const eventsToday = allEvents.filter(
-      (event) =>
-        event.dateTime.toDateString() === today.toDateString() &&
-        event.guildId === guildIDCron
-    );
+    getAllEvents(guildIDCron).then(async (allEvents) => {
+      const eventsToday = allEvents.filter(
+        (event) =>
+          event.dateTime.toDateString() === today.toDateString() &&
+          event.guildId === guildIDCron
+      );
 
-    if (eventsToday.length > 0) {
-      await channelToSendCronJobs.send("These are today's events:");
+      if (eventsToday.length > 0) {
+        const embeds = [];
+        //const components = [];
+        for (const event of eventsToday) {
+          const { embed, components: eventComponents } = await createEventEmbed(
+            event,
+            guild,
+            event.eventId
+          );
+          console.log("Embed created: ", embed);
+          embeds.push(embed);
+          if (
+            eventComponents &&
+            Array.isArray(eventComponents) &&
+            eventComponents.length > 0
+          ) {
+            // Assuming each eventComponents array contains only one action row for simplicity
+            // Verify each action row has a 'components' array with at least one component
+            const validActionRows = eventComponents.filter(
+              (actionRow) =>
+                actionRow.components &&
+                Array.isArray(actionRow.components) &&
+                actionRow.components.length > 0
+            );
 
-      for (const event of eventsToday) {
-        const { embed, components } = await createEventEmbed(
-          event,
-          guild,
-          event.eventId
-        );
-        console.log("Embed created:", embed);
-        await channelToSendCronJobs.send({
-          embeds: [embed],
-          components: [components],
-        });
+            components.push(...validActionRows);
+          }
+        }
+        const moreThan10 = eventsToday.length > 10;
+        // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+        const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+
+        if (replyChannel) {
+          // Ensure the channel was found
+          replyChannel.send({
+            content: moreThan10
+              ? `Here are today's events (limit 10):`
+              : `Here are today's events:`,
+            embeds: embeds.slice(0, 10),
+            components: components.slice(0, 10),
+          });
+        } else {
+          console.error("Failed to find the reply channel.");
+        }
+      } else {
+        console.log("No events are happening today.");
       }
-    } else {
-      console.log("No events are happening today.");
-      // await channelToSendCronJobs.send("No events are happening today.");
-    }
+    });
   } catch (error) {
-    console.error("Error executing cron job:", error);
+    console.error("Error executing cron job for today's events:", error);
   }
 });
 
@@ -1074,22 +1102,48 @@ cron.schedule("0 21 * * *", async () => {
 
     if (eventsTomorrow.length > 0) {
       // Send the announcement message for tomorrow's events
-      await channelToSendCronJobs.send("These are tomorrow's events:");
-
       const embeds = [];
       const components = [];
       for (const event of eventsTomorrow) {
-        const { embed, components } = await createEventEmbed(
+        const { embed, components: eventComponents } = await createEventEmbed(
           event,
           guild,
           event.eventId
         );
         console.log("Embed created:", embed);
-        // embeds.push(embed);
-        await channelToSendCronJobs.send({
-          embeds: [embed],
-          components: [components],
+        embeds.push(embed);
+        if (
+          eventComponents &&
+          Array.isArray(eventComponents) &&
+          eventComponents.length > 0
+        ) {
+          // Assuming each eventComponents array contains only one action row for simplicity
+          // Verify each action row has a 'components' array with at least one component
+          const validActionRows = eventComponents.filter(
+            (actionRow) =>
+              actionRow.components &&
+              Array.isArray(actionRow.components) &&
+              actionRow.components.length > 0
+          );
+
+          components.push(...validActionRows);
+        }
+      }
+      const moreThan10 = eventsTomorrow.length > 10;
+      // Use the CHANNEL_TO_REPLY to send a message to a specific channel
+      const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
+
+      if (replyChannel) {
+        // Ensure the channel was found
+        replyChannel.send({
+          content: moreThan10
+            ? `Here are tomororow's events (limit 10):`
+            : `Here are tomororow's events:`,
+          embeds: embeds.slice(0, 10),
+          components: components.slice(0, 10),
         });
+      } else {
+        console.error("Failed to find the reply channel.");
       }
     } else {
       // If no events are happening tomorrow, send a message to the channel

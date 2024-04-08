@@ -307,5 +307,22 @@
       "1145354063710539839"
     ],
     "maybe": []
+  },
+  "23": {
+    "eventId": 23,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-07T16:00:00.000Z",
+    "organizerId": "760292931008593950",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "title": "Battle of the Buzz Practice",
+    "description": "Skins optional for those who wanna do it",
+    "going": [
+      "199871453678534656",
+      "760292931008593950",
+      "1086998798951260314"
+    ],
+    "maybe": []
   }
 }
