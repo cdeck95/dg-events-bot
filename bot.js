@@ -144,6 +144,40 @@ async function loadEventsFromAPI(guildID) {
   }
 }
 
+async function loadTodaysEventsFromAPI(guildID) {
+  try {
+    // Fetch the guild using the provided guild ID
+    const guild = await client.guilds.fetch(guildID);
+
+    // Fetch all scheduled events for the guild
+    const events = await guild.scheduledEvents.fetch();
+
+    // Get start and end timestamps for the current day
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0); // Set to start of the day
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(startOfDay.getDate() + 1); // Set to end of the day
+
+    // Filter events to include only those that start within today
+    const todaysEvents = [...events.values()].filter(
+      (event) =>
+        event.scheduledStartTimestamp >= startOfDay.getTime() &&
+        event.scheduledStartTimestamp < endOfDay.getTime()
+    );
+
+    // Sort today's events by their scheduled start time in ascending order
+    const sortedTodaysEvents = todaysEvents.sort(
+      (a, b) => a.scheduledStartTimestamp - b.scheduledStartTimestamp
+    );
+
+    // Return today's sorted events
+    return sortedTodaysEvents;
+  } catch (error) {
+    console.error("Error loading events from Discord API:", error);
+    throw error;
+  }
+}
+
 // Function to load events from JSON file
 function loadEvents() {
   try {
@@ -175,6 +209,56 @@ function loadEvents() {
       });
       //console.log("Events loaded successfully.", events);
       return events;
+    }
+  } catch (error) {
+    console.error("Error loading events:", error);
+  }
+}
+
+function loadTodaysEvents() {
+  try {
+    if (fs.existsSync(eventsFilePath)) {
+      const rawData = fs.readFileSync(eventsFilePath);
+      const loadedEvents = JSON.parse(rawData);
+
+      // Get start and end timestamps for the current day
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0); // Set to start of the day
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(startOfDay.getDate() + 1); // Set to end of the day
+
+      // Clear existing events in memory to avoid duplicates
+      events = {};
+
+      Object.keys(loadedEvents).forEach((eventId) => {
+        const e = loadedEvents[eventId];
+        const eventDate = new Date(e.dateTime);
+
+        // Check if the event is scheduled for today
+        if (eventDate >= startOfDay && eventDate < endOfDay) {
+          // Reconstruct and add the event to 'events' if it's scheduled for today
+          events[eventId] = new Event(
+            e.eventId,
+            e.location,
+            e.dateTime,
+            e.organizerId,
+            e.guildId,
+            e.type,
+            e.status,
+            e.title,
+            e.description,
+            e.going,
+            e.maybe,
+            e.interested
+          );
+        }
+      });
+
+      console.log("Today's events loaded successfully.", events);
+      return events;
+    } else {
+      console.log("No events file found.");
+      return {};
     }
   } catch (error) {
     console.error("Error loading events:", error);
@@ -237,6 +321,38 @@ async function getAllEvents(guildID, fetchSubscribers) {
     const discordEventsRaw = await loadEventsFromAPI(guildID);
     //console.log("Discord events loaded:", discordEventsRaw);
     const customEventsRaw = loadEvents(); // Assumes this returns the custom events
+
+    // Normalize Discord events
+    const discordEvents = await Promise.all(
+      [...discordEventsRaw.values()]
+        // .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)) // sort by time/date
+        // .slice(0, 10)
+        .map((event) => normalizeDiscordEvent(event, guildID, fetchSubscribers))
+    );
+    //console.log("Normalized Discord events:", discordEvents);
+
+    // Filter out inactive custom events
+    const activeCustomEvents = Object.values(customEventsRaw).filter(
+      (event) => event.status !== "inactive"
+    );
+
+    // Combine the active custom events with the normalized Discord events
+    const allEvents = discordEvents.concat(activeCustomEvents);
+    //console.log("All events combined:", allEvents);
+
+    // Now `allEvents` contains both your custom events and normalized Discord events
+    return allEvents;
+  } catch (error) {
+    console.error("Error loading all events:", error);
+    throw error;
+  }
+}
+
+async function getTodaysEvents(guildID, fetchSubscribers) {
+  try {
+    const discordEventsRaw = await loadTodaysEventsFromAPI(guildID);
+    //console.log("Discord events loaded:", discordEventsRaw);
+    const customEventsRaw = loadTodaysEvents(); // Assumes this returns the custom events
 
     // Normalize Discord events
     const discordEvents = await Promise.all(
@@ -1026,7 +1142,7 @@ cron.schedule("30 8 * * *", async () => {
     const guildIDCron = "1086345260994658425"; // disc guild server
     const guild = await client.guilds.fetch(guildIDCron);
     const today = new Date();
-    getAllEvents(guildIDCron, true).then(async (allEvents) => {
+    getTodaysEvents(guildIDCron, true).then(async (allEvents) => {
       const eventsToday = allEvents.filter(
         (event) =>
           event.dateTime.toDateString() === today.toDateString() &&
