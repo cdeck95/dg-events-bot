@@ -192,26 +192,28 @@ function saveEvents() {
   }
 }
 
-async function normalizeDiscordEvent(discordEvent, guildId) {
+async function normalizeDiscordEvent(discordEvent, guildId, fetchSubscribers) {
   let interested = [];
 
-  // try {
-  //   // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
-  //   const subscribers = await discordEvent.fetchSubscribers();
-  //   // console.log(
-  //   //   "Subscribers fetched:",
-  //   //   subscribers.map((subscriber) => subscriber.user.id)
-  //   // );
-  //   // Flatten the array of IDs into `interested` directly
-  //   interested = subscribers.map((subscriber) => subscriber.user.id);
-  //   //console.log("Interested list:", interested);
-  // } catch (error) {
-  //   console.error(
-  //     "Error fetching subscribers for event:",
-  //     discordEvent.id,
-  //     error
-  //   );
-  // }
+  if (fetchSubscribers) {
+    try {
+      // Attempt to fetch subscribers, log errors without throwing to avoid breaking flow
+      const subscribers = await discordEvent.fetchSubscribers();
+      // console.log(
+      //   "Subscribers fetched:",
+      //   subscribers.map((subscriber) => subscriber.user.id)
+      // );
+      // Flatten the array of IDs into `interested` directly
+      interested = subscribers.map((subscriber) => subscriber.user.id);
+      //console.log("Interested list:", interested);
+    } catch (error) {
+      console.error(
+        "Error fetching subscribers for event:",
+        discordEvent.id,
+        error
+      );
+    }
+  }
 
   // Simplify object creation and return directly
   return new Event(
@@ -230,7 +232,7 @@ async function normalizeDiscordEvent(discordEvent, guildId) {
   );
 }
 
-async function getAllEvents(guildID) {
+async function getAllEvents(guildID, fetchSubscribers) {
   try {
     const discordEventsRaw = await loadEventsFromAPI(guildID);
     //console.log("Discord events loaded:", discordEventsRaw);
@@ -241,7 +243,7 @@ async function getAllEvents(guildID) {
       [...discordEventsRaw.values()]
         // .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime)) // sort by time/date
         // .slice(0, 10)
-        .map((event) => normalizeDiscordEvent(event, guildID))
+        .map((event) => normalizeDiscordEvent(event, guildID, fetchSubscribers))
     );
     //console.log("Normalized Discord events:", discordEvents);
 
@@ -393,7 +395,7 @@ function parseTimeTo24Hour(timeInput) {
 client.once("ready", async () => {
   console.log("Ready!");
   console.log(`Logged in as ${client.user.tag}`);
-  allEvents = await getAllEvents(guildID);
+  //allEvents = await getAllEvents(guildID, false);
 });
 
 const MEETUP_BOT_CHANNEL_ID = "1220735798312173588";
@@ -523,7 +525,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.deferReply({ ephemeral: true });
 
         const today = new Date();
-        getAllEvents(guildId).then(async (allEvents) => {
+        getAllEvents(guildId, false).then(async (allEvents) => {
           const eventsToday = allEvents.filter(
             (event) =>
               event.dateTime.toDateString() === today.toDateString() &&
@@ -592,7 +594,7 @@ client.on("interactionCreate", async (interaction) => {
         tomorrow.setDate(tomorrow.getDate() + 1); // Increment the day to get tomorrow
         tomorrow.setHours(0, 0, 0, 0); // Set time to the start of tomorrow
 
-        getAllEvents(guildId).then(async (allEvents) => {
+        getAllEvents(guildId, false).then(async (allEvents) => {
           const futureEvents = allEvents.filter(
             (event) =>
               new Date(event.dateTime) >= tomorrow && event.guildId === guildId
@@ -982,7 +984,7 @@ async function checkAndSendEventReminders() {
   const now = new Date();
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // One hour from now
 
-  const allEvents = await getAllEvents(guildIDCron); // Fetch all events
+  const allEvents = await getAllEvents(guildIDCron, true); // Fetch all events
   const upcomingEvents = allEvents.filter((event) => {
     const eventStart = new Date(event.dateTime);
     return (
@@ -1024,7 +1026,7 @@ cron.schedule("30 8 * * *", async () => {
     const guildIDCron = "1086345260994658425"; // disc guild server
     const guild = await client.guilds.fetch(guildIDCron);
     const today = new Date();
-    getAllEvents(guildIDCron).then(async (allEvents) => {
+    getAllEvents(guildIDCron, true).then(async (allEvents) => {
       const eventsToday = allEvents.filter(
         (event) =>
           event.dateTime.toDateString() === today.toDateString() &&
@@ -1093,7 +1095,7 @@ cron.schedule("0 21 * * *", async () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1); // Set to tomorrow's date
 
-    const allEvents = await getAllEvents(guildIDCron);
+    const allEvents = await getAllEvents(guildIDCron, true);
     const eventsTomorrow = allEvents.filter(
       (event) =>
         event.dateTime.toDateString() === tomorrow.toDateString() &&
