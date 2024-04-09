@@ -324,5 +324,18 @@
       "1086998798951260314"
     ],
     "maybe": []
+  },
+  "24": {
+    "eventId": 24,
+    "location": "Tranqulity Trails",
+    "dateTime": "2024-04-09T20:30:00.000Z",
+    "organizerId": "760292931008593950",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "title": "TBD - ask dickie",
+    "description": "he said bring cash",
+    "going": [],
+    "maybe": []
   }
 }

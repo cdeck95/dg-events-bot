@@ -447,15 +447,18 @@ async function createEventEmbed(event, guild, eventId) {
     );
   } else {
     if (event.interested.length > 0) {
-      //console.log("Interested list:", event.interested);
+      // console.log("Interested list:", event.interested);
       const interestedList = await formatUserListForEmbed(event.interested);
-      //console.log("FORMATTED Interested list:", interestedList);
+      // console.log("FORMATTED Interested list:", interestedList);
+      // console.log("Interested list length:", event.interested.length);
 
-      embed.addFields({
-        name: `Interested (${event.interestedList.length})`,
-        value: interestedList,
-        inline: true,
-      });
+      if (interestedList !== undefined) {
+        embed.addFields({
+          name: `Interested (${event.interested.length})`,
+          value: interestedList,
+          inline: true,
+        });
+      }
     }
   }
 
@@ -511,6 +514,9 @@ function parseTimeTo24Hour(timeInput) {
 client.once("ready", async () => {
   console.log("Ready!");
   console.log(`Logged in as ${client.user.tag}`);
+  //checkAndSendEventReminders();
+  //morningCronJob();
+  //nightCronJob();
   //allEvents = await getAllEvents(guildID, false);
 });
 
@@ -1101,8 +1107,16 @@ async function checkAndSendEventReminders() {
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // One hour from now
 
   const allEvents = await getAllEvents(guildIDCron, true); // Fetch all events
+  //console.log("All events form reminders cron:", allEvents);
   const upcomingEvents = allEvents.filter((event) => {
     const eventStart = new Date(event.dateTime);
+    // console.log("Event", event);
+    // console.log(
+    //   eventStart >= now,
+    //   eventStart <= oneHourLater,
+    //   !remindedEventIds.has(event.eventId),
+    //   event.guildId === guildIDCron
+    // );
     return (
       eventStart >= now &&
       eventStart <= oneHourLater &&
@@ -1110,6 +1124,8 @@ async function checkAndSendEventReminders() {
       event.guildId === guildIDCron
     ); // Check if the event is within the next hour and not already reminded
   });
+
+  console.log("Upcoming events for reminders:", upcomingEvents);
 
   for (const event of upcomingEvents) {
     const { embed, components } = await createEventEmbed(
@@ -1136,8 +1152,7 @@ cron.schedule("*/5 * * * *", async () => {
   await checkAndSendEventReminders();
 });
 
-// Schedule the task to run at 9am EST every day
-cron.schedule("30 8 * * *", async () => {
+async function morningCronJob() {
   try {
     const guildIDCron = "1086345260994658425"; // disc guild server
     const guild = await client.guilds.fetch(guildIDCron);
@@ -1151,7 +1166,7 @@ cron.schedule("30 8 * * *", async () => {
 
       if (eventsToday.length > 0) {
         const embeds = [];
-        //const components = [];
+        const components = [];
         for (const event of eventsToday) {
           const { embed, components: eventComponents } = await createEventEmbed(
             event,
@@ -1200,9 +1215,14 @@ cron.schedule("30 8 * * *", async () => {
   } catch (error) {
     console.error("Error executing cron job for today's events:", error);
   }
+}
+
+// Schedule the task to run at 9am EST every day
+cron.schedule("30 8 * * *", async () => {
+  morningCronJob();
 });
 
-cron.schedule("0 21 * * *", async () => {
+async function nightCronJob() {
   try {
     const guild = await client.guilds.fetch(guildIDCron);
     const channelToSendCronJobs = await client.channels.fetch(
@@ -1271,4 +1291,8 @@ cron.schedule("0 21 * * *", async () => {
   } catch (error) {
     console.error("Error executing cron job for tomorrow's events:", error);
   }
+}
+
+cron.schedule("0 21 * * *", async () => {
+  nightCronJob();
 });
