@@ -1098,6 +1098,12 @@ const guildIDCron = "1086345260994658425"; // disc guild server
 
 const remindedEventIds = new Set(); // Store event IDs for which reminders have been sent
 
+// Function to create a unique identifier for an event
+function createUniqueEventIdentifier(event) {
+  // Simplify the dateTime to just the date if the time is not needed, or use the full dateTime
+  return `${event.eventId}-${event.dateTime}`;
+}
+
 async function checkAndSendEventReminders() {
   const guild = await client.guilds.fetch(guildIDCron);
   const channelToSendCronJobs = await client.channels.fetch(
@@ -1120,7 +1126,7 @@ async function checkAndSendEventReminders() {
     return (
       eventStart >= now &&
       eventStart <= oneHourLater &&
-      !remindedEventIds.has(event.eventId) &&
+      !remindedEventIds.has(createUniqueEventIdentifier(event)) &&
       event.guildId === guildIDCron
     ); // Check if the event is within the next hour and not already reminded
   });
@@ -1138,7 +1144,7 @@ async function checkAndSendEventReminders() {
       embeds: [embed],
       components: [components], // No components for reminders
     });
-    remindedEventIds.add(event.eventId); // Mark this event as reminded
+    remindedEventIds.add(createUniqueEventIdentifier(event)); // Mark this event as reminded
 
     // Schedule to remove the event ID from the set after the event starts
     const eventStart = new Date(event.dateTime);

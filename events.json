@@ -333,9 +333,15 @@
     "guildId": "1086345260994658425",
     "type": "custom",
     "status": "scheduled",
-    "title": "TBD - ask dickie",
-    "description": "he said bring cash",
-    "going": [],
-    "maybe": []
+    "title": "Buzz Only Cash Round",
+    "description": "$5-10 buy in, winner takes all",
+    "going": [
+      "760292931008593950",
+      "285853646271545344",
+      "1086826575087017984"
+    ],
+    "maybe": [
+      "1145354063710539839"
+    ]
   }
 }
