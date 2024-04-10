@@ -1149,7 +1149,11 @@ async function checkAndSendEventReminders() {
     // Schedule to remove the event ID from the set after the event starts
     const eventStart = new Date(event.dateTime);
     const delay = eventStart.getTime() - now.getTime(); // Calculate delay until event start
-    setTimeout(() => remindedEventIds.delete(event.eventId), delay);
+    // Schedule to remove the unique event identifier from the set after the event starts
+    setTimeout(
+      () => remindedEventIds.delete(createUniqueEventIdentifier(event)),
+      delay
+    );
   }
 }
 
