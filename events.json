@@ -343,5 +343,17 @@
     "maybe": [
       "1145354063710539839"
     ]
+  },
+  "25": {
+    "eventId": 25,
+    "location": "Alcyon Woods",
+    "dateTime": "2024-04-11T12:00:00.000Z",
+    "organizerId": "341588982187950081",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "description": "short tees",
+    "going": [],
+    "maybe": []
   }
 }

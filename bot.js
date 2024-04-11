@@ -514,7 +514,7 @@ function parseTimeTo24Hour(timeInput) {
 client.once("ready", async () => {
   console.log("Ready!");
   console.log(`Logged in as ${client.user.tag}`);
-  //checkAndSendEventReminders();
+  checkAndSendEventReminders();
   //morningCronJob();
   //nightCronJob();
   //allEvents = await getAllEvents(guildID, false);
@@ -804,8 +804,8 @@ client.on("interactionCreate", async (interaction) => {
           saveEvents();
           // Generate updated event embed
           const updatedEvent = events[eventId];
-          const guild = await client.guilds.cache.get(updatedEvent.guildId);
-          const { embed } = await createEventEmbed(
+          const guild = client.guilds.cache.get(updatedEvent.guildId);
+          const { embed, components } = await createEventEmbed(
             updatedEvent,
             guild,
             eventId
@@ -817,6 +817,7 @@ client.on("interactionCreate", async (interaction) => {
             replyChannel.send({
               content: `📣 Event Update: "${updatedEvent.title}" Description Updated`,
               embeds: [embed],
+              components: [components],
             });
             await interaction.editReply({
               content: `Event description updated successfully. The updated event details have been posted in the <${CHANNEL_TO_REPLY}> channel.`,
@@ -846,7 +847,7 @@ client.on("interactionCreate", async (interaction) => {
           // Generate updated event embed
           const updatedEvent = events[eventId];
           const guild = client.guilds.cache.get(updatedEvent.guildId);
-          const { embed } = await createEventEmbed(
+          const { embed, components } = await createEventEmbed(
             updatedEvent,
             guild,
             eventId
@@ -858,6 +859,7 @@ client.on("interactionCreate", async (interaction) => {
             replyChannel.send({
               content: `📣 Event Update: ${updatedEvent.title}`,
               embeds: [embed],
+              components: [components],
             });
             await interaction.editReply({
               content: `Event title updated successfully. The updated event details have been posted in the <${CHANNEL_TO_REPLY}> channel.`,
@@ -1116,19 +1118,35 @@ async function checkAndSendEventReminders() {
   //console.log("All events form reminders cron:", allEvents);
   const upcomingEvents = allEvents.filter((event) => {
     const eventStart = new Date(event.dateTime);
-    // console.log("Event", event);
-    // console.log(
-    //   eventStart >= now,
-    //   eventStart <= oneHourLater,
-    //   !remindedEventIds.has(event.eventId),
-    //   event.guildId === guildIDCron
-    // );
+    // Convert both times to milliseconds since the Unix Epoch for comparison
+    const nowUtc = now.getTime();
+    const eventStartUtc = eventStart.getTime();
+    const oneHourLaterUtc = oneHourLater.getTime();
+    console.log("Event", event.title, "Start Time (UTC):", eventStartUtc);
+    console.log(
+      "Current Time (UTC):",
+      nowUtc,
+      "One Hour Later (UTC):",
+      oneHourLaterUtc
+    );
+    console.log(
+      "Comparisons:",
+      "Start >= Now?",
+      eventStartUtc >= nowUtc,
+      "Start <= OneHourLater?",
+      eventStartUtc <= oneHourLaterUtc,
+      "Not reminded yet?",
+      !remindedEventIds.has(createUniqueEventIdentifier(event)),
+      "Guild ID Match?",
+      event.guildId === guildIDCron
+    );
+
     return (
-      eventStart >= now &&
-      eventStart <= oneHourLater &&
+      eventStartUtc >= nowUtc &&
+      eventStartUtc <= oneHourLaterUtc &&
       !remindedEventIds.has(createUniqueEventIdentifier(event)) &&
       event.guildId === guildIDCron
-    ); // Check if the event is within the next hour and not already reminded
+    );
   });
 
   console.log("Upcoming events for reminders:", upcomingEvents);
@@ -1139,11 +1157,22 @@ async function checkAndSendEventReminders() {
       guild,
       event.eventId
     ); // Create embed for the event
-    await channelToSendCronJobs.send({
-      content: "🔔 Reminder: An event is starting soon!",
-      embeds: [embed],
-      components: [components], // No components for reminders
-    });
+
+    console.log("Components:", components);
+
+    if (components.length > 0) {
+      await channelToSendCronJobs.send({
+        content: "🔔 Reminder: An event is starting soon!",
+        embeds: [embed],
+        components: [components], // No components for reminders
+      });
+    } else {
+      await channelToSendCronJobs.send({
+        content: "🔔 Reminder: An event is starting soon!",
+        embeds: [embed],
+      });
+    }
+
     remindedEventIds.add(createUniqueEventIdentifier(event)); // Mark this event as reminded
 
     // Schedule to remove the event ID from the set after the event starts
