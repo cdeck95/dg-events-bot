@@ -355,5 +355,20 @@
     "description": "short tees",
     "going": [],
     "maybe": []
+  },
+  "26": {
+    "eventId": 26,
+    "location": "Whitaker Woods",
+    "dateTime": "2024-04-14T14:15:00.000Z",
+    "organizerId": "285853646271545344",
+    "guildId": "1086345260994658425",
+    "type": "custom",
+    "status": "scheduled",
+    "title": "Whit You Were Here",
+    "description": "Cosmic C-tier (2 rounds)",
+    "going": [
+      "285853646271545344"
+    ],
+    "maybe": []
   }
 }

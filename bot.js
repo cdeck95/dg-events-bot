@@ -254,7 +254,7 @@ function loadTodaysEvents() {
         }
       });
 
-      console.log("Today's events loaded successfully.", events);
+      // console.log("Today's events loaded successfully.", events);
       return events;
     } else {
       console.log("No events file found.");
@@ -524,17 +524,17 @@ const MEETUP_BOT_CHANNEL_ID = "1220735798312173588";
 
 client.on("interactionCreate", async (interaction) => {
   try {
-    console.log("Interaction received:", interaction);
+    // console.log("Interaction received:", interaction);
 
     if (interaction.isCommand()) {
       const { commandName, guildId } = interaction;
-      console.log("Guild ID:", guildId);
+      // console.log("Guild ID:", guildId);
 
       if (commandName === "create_event") {
         await interaction.deferReply({ ephemeral: true });
         const location = interaction.options.getString("location");
 
-        console.log(interaction.options);
+        // console.log(interaction.options);
 
         const dateInput = interaction.options.getString("date"); // e.g., '2023-09-15'
 
@@ -545,9 +545,9 @@ client.on("interactionCreate", async (interaction) => {
         )}-${dateParts[1].padStart(2, "0")}`;
 
         const timeInput = interaction.options.getString("time"); // e.g., '7:00 PM'
-        console.log("Time input:", timeInput);
+        // console.log("Time input:", timeInput);
         const timeInputFormatted = parseTimeTo24Hour(timeInput);
-        console.log("Time input formatted:", timeInputFormatted);
+        // console.log("Time input formatted:", timeInputFormatted);
         if (!timeInputFormatted) {
           await interaction.editReply({
             content:
@@ -558,10 +558,10 @@ client.on("interactionCreate", async (interaction) => {
         }
 
         const combinedDateTimeString = `${formattedDateInput}T${timeInputFormatted}:00`;
-        console.log("Combined Date Time String:", combinedDateTimeString);
+        // console.log("Combined Date Time String:", combinedDateTimeString);
 
         const eventDateTime = new Date(combinedDateTimeString);
-        console.log("Event Date Time:", eventDateTime);
+        // console.log("Event Date Time:", eventDateTime);
 
         if (!(eventDateTime instanceof Date && !isNaN(eventDateTime))) {
           await interaction.editReply({
@@ -610,16 +610,16 @@ client.on("interactionCreate", async (interaction) => {
           description
         );
 
-        console.log(`Event added: ${eventId}`, events[eventId]); // Verify event addition
-        console.log(events);
+        // console.log(`Event added: ${eventId}`, events[eventId]); // Verify event addition
+        // console.log(events);
 
         const { embed, components } = await createEventEmbed(
           events[eventId],
           interaction.guild,
           eventId
         );
-        console.log(embed);
-        console.log(components);
+        // console.log(embed);
+        // console.log(components);
 
         saveEvents(); // Save events after adding a new one
 
@@ -660,7 +660,7 @@ client.on("interactionCreate", async (interaction) => {
             for (const event of eventsToday) {
               const { embed, components: eventComponents } =
                 await createEventEmbed(event, interaction.guild, event.eventId);
-              console.log("Embed created: ", embed);
+              // console.log("Embed created: ", embed);
               embeds.push(embed);
               if (
                 eventComponents &&
@@ -722,15 +722,15 @@ client.on("interactionCreate", async (interaction) => {
               new Date(event.dateTime) >= tomorrow && event.guildId === guildId
           );
 
-          console.log("# of Future events:", futureEvents.length);
-          console.log("Future events:", futureEvents);
+          // console.log("# of Future events:", futureEvents.length);
+          // console.log("Future events:", futureEvents);
 
           // Sort the events by their start dateTime
           futureEvents.sort(
             (a, b) => new Date(a.dateTime) - new Date(b.dateTime)
           );
 
-          console.log("Sorted Future events:", futureEvents);
+          // console.log("Sorted Future events:", futureEvents);
 
           if (futureEvents.length > 0) {
             const embeds = [];
@@ -760,7 +760,7 @@ client.on("interactionCreate", async (interaction) => {
             // Use the CHANNEL_TO_REPLY to send a message to a specific channel
             const replyChannel = client.channels.cache.get(CHANNEL_TO_REPLY);
 
-            console.log("Components:", components);
+            // console.log("Components:", components);
             // Filtering out any action rows that are empty or have more than 5 components
             const validComponents = components.filter(
               (actionRow) =>
@@ -949,12 +949,12 @@ client.on("interactionCreate", async (interaction) => {
           interaction.guild,
           eventId
         );
-        console.log("Updated embed:", embed);
-        console.log("Updated components:", components);
+        // console.log("Updated embed:", embed);
+        // console.log("Updated components:", components);
 
         // Convert EmbedBuilder to a plain object
         const updatedEmbed = embed.toJSON();
-        console.log("JSON Format:", updatedEmbed);
+        // console.log("JSON Format:", updatedEmbed);
 
         // // Ensure components are structured correctly
         // const updatedComponents = components.components.map((component) =>
@@ -1122,24 +1122,24 @@ async function checkAndSendEventReminders() {
     const nowUtc = now.getTime();
     const eventStartUtc = eventStart.getTime();
     const oneHourLaterUtc = oneHourLater.getTime();
-    console.log("Event", event.title, "Start Time (UTC):", eventStartUtc);
-    console.log(
-      "Current Time (UTC):",
-      nowUtc,
-      "One Hour Later (UTC):",
-      oneHourLaterUtc
-    );
-    console.log(
-      "Comparisons:",
-      "Start >= Now?",
-      eventStartUtc >= nowUtc,
-      "Start <= OneHourLater?",
-      eventStartUtc <= oneHourLaterUtc,
-      "Not reminded yet?",
-      !remindedEventIds.has(createUniqueEventIdentifier(event)),
-      "Guild ID Match?",
-      event.guildId === guildIDCron
-    );
+    // console.log("Event", event.title, "Start Time (UTC):", eventStartUtc);
+    // console.log(
+    //   "Current Time (UTC):",
+    //   nowUtc,
+    //   "One Hour Later (UTC):",
+    //   oneHourLaterUtc
+    // );
+    // console.log(
+    //   "Comparisons:",
+    //   "Start >= Now?",
+    //   eventStartUtc >= nowUtc,
+    //   "Start <= OneHourLater?",
+    //   eventStartUtc <= oneHourLaterUtc,
+    //   "Not reminded yet?",
+    //   !remindedEventIds.has(createUniqueEventIdentifier(event)),
+    //   "Guild ID Match?",
+    //   event.guildId === guildIDCron
+    // );
 
     return (
       eventStartUtc >= nowUtc &&
@@ -1149,7 +1149,7 @@ async function checkAndSendEventReminders() {
     );
   });
 
-  console.log("Upcoming events for reminders:", upcomingEvents);
+  // console.log("Upcoming events for reminders:", upcomingEvents);
 
   for (const event of upcomingEvents) {
     const { embed, components } = await createEventEmbed(
@@ -1158,7 +1158,7 @@ async function checkAndSendEventReminders() {
       event.eventId
     ); // Create embed for the event
 
-    console.log("Components:", components);
+    // console.log("Components:", components);
 
     if (components.length > 0) {
       await channelToSendCronJobs.send({
@@ -1212,7 +1212,7 @@ async function morningCronJob() {
             guild,
             event.eventId
           );
-          console.log("Embed created: ", embed);
+          // console.log("Embed created: ", embed);
           embeds.push(embed);
           if (
             eventComponents &&
@@ -1287,7 +1287,7 @@ async function nightCronJob() {
           guild,
           event.eventId
         );
-        console.log("Embed created:", embed);
+        // console.log("Embed created:", embed);
         embeds.push(embed);
         if (
           eventComponents &&
